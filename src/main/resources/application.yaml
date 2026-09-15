@@ -1,0 +1,106 @@
+phmp:
+  mode: simulate                        # simulate | device (override with -Dphmp.mode)
+  env: local                            # local | dev | ote | prod (override with -Dphmp.env)
+  region: both                          # US | EU | both
+  build:
+    # Confirmed on PST3 ST3SL512NY000341: the installed package is co.poynt.cloudmessaging
+    # (co.poynt.services.pcm is not present) and the service is co.poynt.cloudmessaging/.PcmService.
+    packageName: co.poynt.cloudmessaging
+    # Confirmed on PST3: dumpsys reports android.uid.poynt/2500, not android.uid.system.
+    sharedUid: android.uid.poynt
+    expectedAbi: arm64-v8a
+    privileged: true
+    expectedCertFingerprint: "SIM-CERT-FINGERPRINT"
+    minVersionCode: 1
+  deployment:
+    flashSupported: true
+    otaSupported: true
+    expectedImageChannel: nightly-vendor
+    verifyBootAfterDeploy: true
+  timeouts:
+    bootSeconds: 120
+    websocketConnectSeconds: 60
+    healthMonitorSeconds: 30
+    cloudMessageSeconds: 45
+    adbCommandSeconds: 30
+    reconnectSeconds: 45
+  websocket:
+    us:
+      endpoint: wss://pcm-us.lab.poynt.net/v1/socket
+      discovery: https://discovery-us.lab.poynt.net
+    eu:
+      endpoint: wss://pcm-eu.lab.poynt.net/v1/socket
+      discovery: https://discovery-eu.lab.poynt.net
+    # Measured on PST3 ST3SL512NY000341: PCM pings roughly every 270s (300s profile), not 15s.
+    # Device mode prefers the profile detected in the log and uses this only as the fallback.
+    pingIntervalMs: 300000
+    pongTimeoutMs: 5000
+    # Observed Ping -> Pong round trip on the real terminal was ~2.7s.
+    maxLatencyMs: 10000
+  cloud:
+    us:
+      baseUrl: https://api-us.lab.poynt.net
+      injectPath: /v1/pcm/messages
+      mothershipPath: /v1/mothership/events
+    eu:
+      baseUrl: https://api-eu.lab.poynt.net
+      injectPath: /v1/pcm/messages
+      mothershipPath: /v1/mothership/events
+    authHeader: Bearer demo-token
+    # No inject endpoint or app credentials exist for dev/ote yet, so the cloud gate reports SKIPPED
+    # instead of failing. Set true (or -Dphmp.cloud.injectEnabled=true) once the contract is available.
+    injectEnabled: true
+  devices:
+    us:
+      serial: US-SIM-001
+      label: US Lab Device
+    eu:
+      serial: EU-SIM-001
+      label: EU Lab Device
+  reporting:
+    outputDir: reports
+    htmlReportName: phmp-execution-report.html
+    historyDir: reports/history
+    retainLogs: true
+  logging:
+    collectLogcat: true
+    logDir: logs
+  releaseGate:
+    requireUs: true
+    requireEu: true
+    blockOnAnyCriticalFailure: true
+  iot:
+    enabled: true
+    companionPackage: co.poynt.cloudmessaging.iot.test
+    action: RELEASE_GATE
+    gateTimeoutSeconds: 360
+
+  # Selected by phmp.env. Values not listed here fall back to the websocket/cloud blocks above, which
+  # is why the default env "local" keeps simulate mode on the placeholder lab URLs.
+  #
+  # Endpoints must match the device byte for byte: EnvironmentValidator compares the YAML value against
+  # persist.poynt.srvc.url.pcm, so a trailing slash matters.
+  environments:
+    dev:
+      us:
+        # Read back from the terminal's own discovery response (cloudMessageService.endPoint.address).
+        endpoint: wss://pcm-ci.poynt.net
+        discovery: https://fouroneone.poynt.net/discovery/services
+        cloudBaseUrl: https://services-ci.poynt.net
+        injectPath: /v1/pcm/messages
+        mothershipPath: /v1/mothership/events
+    ote:
+      us:
+        # Read from the terminal before it was switched to dev.
+        endpoint: wss://pcm-ote.poynt.net
+        discovery: https://fouroneone.poynt.net/discovery/services
+        cloudBaseUrl: https://services-ote.poynt.net
+        injectPath: /v1/pcm/messages
+        mothershipPath: /v1/mothership/events
+    prod:
+      us:
+        endpoint: REPLACE_WITH_PROD_PCM_WSS
+        discovery: REPLACE_WITH_PROD_DISCOVERY
+        cloudBaseUrl: REPLACE_WITH_PROD_CLOUD_BASE_URL
+        injectPath: /v1/pcm/messages
+        mothershipPath: /v1/mothership/events

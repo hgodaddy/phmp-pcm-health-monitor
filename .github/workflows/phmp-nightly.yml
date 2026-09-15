@@ -1,0 +1,99 @@
+name: PHMP Nightly Release Gate
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # 06:00 UTC nightly
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Execution mode"
+        required: true
+        default: simulate
+        type: choice
+        options:
+          - simulate
+          - device
+      region:
+        description: "Region scope"
+        required: true
+        default: both
+        type: choice
+        options:
+          - both
+          - US
+          - EU
+
+jobs:
+  validate:
+    name: PCM validation (${{ github.event.inputs.mode || 'simulate' }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      PHMP_MODE: ${{ github.event.inputs.mode || 'simulate' }}
+      PHMP_REGION: ${{ github.event.inputs.region || 'both' }}
+      BUILD_ID: ${{ github.run_id }}
+      PHMP_US_SERIAL: ${{ secrets.PHMP_US_SERIAL }}
+      PHMP_EU_SERIAL: ${{ secrets.PHMP_EU_SERIAL }}
+      PHMP_CLOUD_TOKEN: ${{ secrets.PHMP_CLOUD_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Run US lifecycle
+        if: env.PHMP_REGION == 'both' || env.PHMP_REGION == 'US'
+        run: |
+          mvn -B test \
+            -P${PHMP_MODE},us \
+            -Dphmp.mode=${PHMP_MODE} \
+            -Dphmp.region=US \
+            -Dgroups=us
+
+      - name: Run EU lifecycle
+        if: env.PHMP_REGION == 'both' || env.PHMP_REGION == 'EU'
+        run: |
+          mvn -B test \
+            -P${PHMP_MODE},eu \
+            -Dphmp.mode=${PHMP_MODE} \
+            -Dphmp.region=EU \
+            -Dgroups=eu
+
+      - name: Generate Allure report
+        if: always()
+        run: ./scripts/allure-report.sh
+
+      - name: Upload PHMP artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phmp-phase1-artifacts-${{ github.run_id }}
+          path: |
+            reports/**
+            logs/**
+            target/surefire-reports/**
+            target/allure-results/**
+            target/site/**
+          if-no-files-found: warn
+
+      - name: Release gate summary
+        if: always()
+        run: |
+          echo "## PHMP Nightly Gate" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Mode: \`${PHMP_MODE}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Region: \`${PHMP_REGION}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Build: \`${BUILD_ID}\`" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f reports/history/summary.jsonl ]]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### Latest history lines" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            tail -n 5 reports/history/summary.jsonl >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi

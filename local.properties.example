@@ -1,0 +1,27 @@
+# Copy to local.properties for real-device runs (gitignored — never commit secrets).
+#   cp local.properties.example local.properties
+#
+# Qualify the terminal before the first run:
+#   ./scripts/qualify-device.sh YOUR_ADB_SERIAL
+# It must report READY, otherwise gates fail for log-marker reasons rather than PCM health reasons.
+#
+# Env vars PHMP_US_SERIAL / PHMP_EU_SERIAL / PHMP_CLOUD_TOKEN override these when set.
+# Endpoints come from the phmp.environments.<env> block in application.yaml, selected by phmp.env.
+
+phmp.mode=device
+phmp.env=dev
+phmp.region=US
+
+# From `adb devices`. With a single terminal set only its region and run ./scripts/run-device.sh US
+# (region=both requires both serials).
+phmp.us.serial=ST3SL512NY000341
+phmp.eu.serial=YOUR_EU_ADB_SERIAL
+
+# Cloud / Mothership bearer token (sent as Authorization: Bearer <token>).
+# Recover the terminal's current token from logcat instead of pasting one by hand:
+#   ./scripts/fetch-device-token.sh YOUR_ADB_SERIAL --env dev
+# It rewrites phmp.cloud.token below and warns when the token was issued by another environment.
+# Leave the inject disabled until the cloud team provides an inject endpoint plus app credentials;
+# the Cloud Messaging gate then reports SKIPPED instead of failing on an endpoint we cannot call.
+phmp.cloud.injectEnabled=false
+#phmp.cloud.token=YOUR_CLOUD_BEARER_TOKEN
