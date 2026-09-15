@@ -112,13 +112,7 @@ cp local.properties.example local.properties   # fill serials
 
 ## Documentation
 
-- Leadership one-pager: [`docs/LEADERSHIP_ONE_PAGER.md`](docs/LEADERSHIP_ONE_PAGER.md)
-- PRR draft (go / no-go): [`docs/PRR_PHASE1_DRAFT.md`](docs/PRR_PHASE1_DRAFT.md)
-- Team status update: [`docs/TEAM_STATUS_UPDATE.md`](docs/TEAM_STATUS_UPDATE.md)
-- Sequential Day 1–4 implementation + deployment: [`docs/PHASE1_IMPLEMENTATION_AND_DEPLOYMENT_GUIDE.md`](docs/PHASE1_IMPLEMENTATION_AND_DEPLOYMENT_GUIDE.md)
 - Lab device checklist (serials / endpoints / token): [`docs/LAB_DEVICE_CHECKLIST.md`](docs/LAB_DEVICE_CHECKLIST.md)
-- Leadership demo script: [`docs/LEADERSHIP_DEMO_AND_RUN_GUIDE.md`](docs/LEADERSHIP_DEMO_AND_RUN_GUIDE.md)
-- 8-minute demo script (real PST3 + simulate): [`docs/THURSDAY_DEMO_SCRIPT.md`](docs/THURSDAY_DEMO_SCRIPT.md) — driver: `./scripts/demo.sh`
 
 ## Technology foundation (Phase 1)
 
