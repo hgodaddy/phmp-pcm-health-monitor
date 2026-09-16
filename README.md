@@ -72,13 +72,12 @@ src/test/java/   # US/EU JUnit suites
 .github/workflows/phmp-nightly.yml
 Jenkinsfile
 scripts/         # Local runners + verify-poc
-docs/            # Day 1–4 implementation + deployment guide
 ```
 
 ## Common commands
 
 ```bash
-# Leadership demo: green simulate run, then the real terminal run (see docs/THURSDAY_DEMO_SCRIPT.md)
+
 ./scripts/demo.sh            # both acts
 ./scripts/demo.sh simulate   # ~5s, all-green US + EU
 ./scripts/demo.sh device     # ~5.5min against the physical PST3
