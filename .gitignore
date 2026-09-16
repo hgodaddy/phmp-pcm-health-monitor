@@ -1,21 +1,29 @@
-target/
-.allure/
+# Build and run output. These stay anchored with a leading slash: an unanchored
+# pattern such as "logs/" also matches source packages like
+# src/main/java/com/poynt/phmp/logs/, which silently excludes them from commits.
+/target/
+/.allure/
+/logs/
+/reports/
+/allure-results/
+/allure-report/
+
+# Local-only config
+/local.properties
+.env
+
+# Editor and OS
 .idea/
 *.iml
 .classpath
 .project
 .settings/
 .vscode/
-*.log
-logs/
-reports/
-allure-results/
-allure-report/
 .DS_Store
+
+# Binaries and transient caches
 *.class
-.env
-local.properties
+*.log
 *.apk
 *.bin
-.device-cache/
-reports/qualification/
+/.device-cache/
